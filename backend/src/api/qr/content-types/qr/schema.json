@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "qrs",
+  "info": {
+    "singularName": "qr",
+    "pluralName": "qrs",
+    "displayName": "qr",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "location_url": {
+      "type": "string"
+    },
+    "code_image": {
+      "type": "string"
+    },
+    "reports": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::report.report",
+      "mappedBy": "qr"
+    },
+    "defects": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::defect.defect",
+      "mappedBy": "qr"
+    },
+    "creator": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "qrs"
+    },
+    "title": {
+      "type": "string"
+    }
+  }
+}

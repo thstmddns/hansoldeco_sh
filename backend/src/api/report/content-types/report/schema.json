@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reports",
+  "info": {
+    "singularName": "report",
+    "pluralName": "reports",
+    "displayName": "Report",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "defects": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::defect.defect",
+      "mappedBy": "report"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "qr": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::qr.qr",
+      "inversedBy": "reports"
+    }
+  }
+}

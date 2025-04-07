@@ -1,0 +1,150 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style id="compiled-css" type="text/css">
+        canvas {
+            border: 2px solid black;
+        }
+    </style>
+    <script type="text/javascript">
+        window.onload = function () {
+            const canvas = document.getElementById("canvas");
+            const context = canvas.getContext("2d");
+            let originx = 0;
+            let originy = 0;
+
+            let lastMouseX = 0, lastMouseY = 0;
+            let isDragging = false;
+
+            let zoomOriginX = 0;
+            let zoomOriginY = 0;
+            let scale = 1;
+            let currentzoom = 1;
+            let mousex = 0, mousey = 0;
+
+            const randomRects = [];
+            const actions = [];
+            const minHeightOfRandomRect = 1.24;
+
+            randomRects.push({ x: Math.random() * minHeightOfRandomRect * canvas.width , y: Math.random() * minHeightOfRandomRect * canvas.height, w: Math.random() * minHeightOfRandomRect * canvas.width, h: Math.random() * minHeightOfRandomRect * canvas.height, label: "Hello" });
+            actions.push({type: "add", details: randomRects[randomRects.length - 1]});
+            randomRects.push({ x: Math.random() * minHeightOfRandomRect * canvas.width , y: Math.random() * minHeightOfRandomRect * canvas.height, w: Math.random() * minHeightOfRandomRect * canvas.width, h: Math.random() * minHeightOfRandomRect * canvas.height, label: "Hello" });
+            actions.push({type: "add", details: randomRects[randomRects.length - 1]});
+            randomRects.push({ x: Math.random() * minHeightOfRandomRect * canvas.width , y: Math.random() * minHeightOfRandomRect * canvas.height, w: Math.random() * minHeightOfRandomRect * canvas.width, h: Math.random() * minHeightOfRandomRect * canvas.height, label: "Hello" });
+            actions.push({type: "add", details: randomRects[randomRects.length - 1]});
+            randomRects.push({ x: Math.random() * minHeightOfRandomRect * canvas.width , y: Math.random() * minHeightOfRandomRect * canvas.height, w: Math.random() * minHeightOfRandomRect * canvas.width, h: Math.random() * minHeightOfRandomRect * canvas.height, label: "Hello" });
+            actions.push({type: "add", details: randomRects[randomRects.length - 1]});
+
+
+            function drawRectAndLabel(x, y, w, h, label) {
+                context.strokeStyle = "#00FFFF";
+                context.strokeRect(originx + x, originy + y, w, h);
+
+                // Draw label background
+                context.fillStyle = "#00FFFF";
+                context.fillRect(originx + x, originy + y, context.measureText(label).width + 4, 20 + 4);
+
+                context.fillStyle = "#fff";
+                context.font = "20px Arial";
+                context.fillText(label, originx + x, originy + y + 20);
+            }
+
+
+            function removeRectAndLabelWhenClicked(e) {
+                let x = e.clientX - canvas.offsetLeft;
+                let y = e.clientY - canvas.offsetTop;
+                // for (let i = 0; i < randomRects.length; i++) {
+                //     if (x > randomRects[i].x + originx && x < randomRects[i].x + randomRects[i].w + originx && y > randomRects[i].y + originy && y < randomRects[i].y + randomRects[i].h + originy) {
+                //         randomRects.splice(i, 1);
+                //         break;
+                //     }
+                // }
+                for (let i = randomRects.length - 1; i >= 0; i--) {
+                    if (x > randomRects[i].x + originx && x < randomRects[i].x + randomRects[i].w + originx && y > randomRects[i].y + originy && y < randomRects[i].y + randomRects[i].h + originy) {
+                        actions.push({type: "remove", details: randomRects[i]});
+                        randomRects.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+
+
+            function draw() {
+                context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+                context.fillStyle = "black";
+                context.fillRect(50 + originx, 50 + originy, canvas.width / 2, canvas.height / 2);
+
+                randomRects.forEach(function (rect) {
+                    drawRectAndLabel(rect.x, rect.y, rect.w, rect.h, rect.label);
+                });
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+
+            canvas.onmousewheel = function (event){
+               let wheel = event.wheelDelta / 120; //n or -n
+               let zoom = 1;
+               if(wheel < 0){
+                  zoom = 1 / 2;
+                  if(currentzoom == 1) return;
+               } else {
+                  mousex = event.clientX - canvas.offsetLeft;
+                  mousey = event.clientY - canvas.offsetTop;
+                  zoom = 2;
+                  if(currentzoom == 32) return;
+               }
+               currentzoom *= zoom;
+               context.translate(zoomOriginX, zoomOriginY);
+               context.scale(zoom, zoom);
+               context.translate(
+                  -(mousex / scale + zoomOriginX - mousex / (scale * zoom)),
+                  -(mousey / scale + zoomOriginY - mousey / (scale * zoom))
+               );
+               zoomOriginX = (mousex / scale + zoomOriginX - mousex / (scale * zoom));
+               zoomOriginY = (mousey / scale + zoomOriginY - mousey / (scale * zoom));
+               scale *= zoom;
+            }
+
+            canvas.addEventListener('mousedown', function (e) {
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                removeRectAndLabelWhenClicked(e);
+                isDragging = true;
+            });
+
+            window.addEventListener('mousemove', function (e) {
+                if (isDragging) {
+                    let mouseX = e.clientX;
+                    let mouseY = e.clientY;
+                    let dx = mouseX - lastMouseX;
+                    let dy = mouseY - lastMouseY;
+                    originx += dx;
+                    originy += dy;
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                }
+            });
+
+            window.addEventListener('mouseup', function (e) {
+                isDragging = false;
+            });
+
+
+            window.addEventListener('keydown', function (e) {
+                if (e.key === "z" && e.ctrlKey) {
+                    let action = actions.pop();
+                    if (action.type === "add") {
+                        randomRects.pop();
+                    } else if (action.type === "remove") {
+                        randomRects.push(action.details);
+                    }
+                }
+            });
+        };
+    </script>
+</head>
+<body>
+    <canvas id="canvas" height="500" width="900"></canvas>
+</body>
+</html>

@@ -1,0 +1,13 @@
+FROM python:3.9
+WORKDIR /
+RUN pip install fastapi
+RUN pip install uvicorn
+RUN pip install requests
+RUN pip install pymysql
+RUN pip install matplotlib
+RUN pip install pandas
+RUN pip install python-multipart
+RUN pip install openai==0.28.0
+COPY . .
+
+CMD ["python", "main.py"]

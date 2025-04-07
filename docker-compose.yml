@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  db:
+    restart: unless-stopped
+    image: mysql:5.7.40
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./db/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: sosohaja
+      MYSQL_PASSWORD: sosohaja
+      MYSQL_DATABASE: sosohaja
+    ports:
+      - "3306:3306"
+    networks:
+      - dfinite-network
+    container_name: sosohaja-db
+
+  backend_app:
+    restart: unless-stopped
+    build: ./backend/
+    environment:
+      - NODE_ENV=development # or production
+      - DATABASE_CLIENT=mysql
+      - DATABASE_HOST=db # docker-compose service name
+      - DATABASE_PORT=3306
+      - DATABASE_NAME=sosohaja
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=sosohaja
+      - DATABASE_ROOT_PASSWORD=sosohaja
+      - DATABASE_SSL=false
+    ports:
+      - "1338:1338"
+    volumes:
+      - ./backend/src:/dfinite/src
+    depends_on:
+      - db
+    networks:
+      - dfinite-network
+    container_name: sosohaja-backend
+
+  frontend_app:
+    restart: unless-stopped
+    build: ./frontend/
+    environment:
+      - MASTER_TOKEN="Bearer 0ccd5834709ab37dbc31fd29e9df99de865d8264dcb549de176b940b22cbd31fad2a99154c1f802dd967285a9b237b150fbea192dcfb7a44a19e6089735144d793e1cd918500e5509f3e2b57991e171f11c874448b80495f9d9b2979c03ae28e3bd84ac2ac25eb4304421ae96b6dd075cdb20a2caff6a9de5ede8cbfe65f3f9a"
+      - SERVER_URL="https://sosohajaai.com"
+      - SERVERLESS_URL="https://og7i092nu9.execute-api.ap-northeast-2.amazonaws.com/prod/upload"
+      - AI_SERVER_URL="https://sosohajaai.com"
+    ports:
+      - "3000:3000"
+    networks:
+      - dfinite-network
+    container_name: sosohaja-frontend
+
+  ai_app:
+    restart: unless-stopped
+    build: ./ai/
+    ports:
+      - "8080:8080"
+    networks:
+      - dfinite-network
+    container_name: sosohaja-ai
+
+networks:
+  dfinite-network:
+    driver: bridge
